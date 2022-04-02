@@ -1,0 +1,16 @@
+{
+  "name": "streamfun",
+  "version": "1.0.0",
+  "description": "A fun Browser Source for Twitch streams that can be controlled using sockets.",
+  "main": "js/main.js",
+  "scripts": {
+    "start": "node --trace-uncaught --enable-source-maps .",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "watch": "npx tsc --watch"
+  },
+  "author": "eyemotif",
+  "license": "GPL-3.0-or-later",
+  "devDependencies": {
+    "ts-node": "^10.7.0"
+  }
+}
