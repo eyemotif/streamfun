@@ -5,7 +5,6 @@ import path from 'path'
 
 export type Secrets = {
     publicPassword: string | undefined,
-    privatePassword: string | undefined,
     publicPort: number,
     privatePort: number,
     pagePort: number,
@@ -13,15 +12,11 @@ export type Secrets = {
 
 export function getSecrets(): Secrets {
     const secretsPath = path.join(__dirname, '..', 'secret')
-    let publicPassword, privatePassword, publicPort, privatePort, pagePort
+    let publicPassword, publicPort, privatePort, pagePort
     if (existsSync(path.join(secretsPath, 'public-password.txt'))) {
         publicPassword = readFileSync(path.join(secretsPath, 'public-password.txt'), 'utf8')
     }
     else publicPassword = undefined
-    if (existsSync(path.join(secretsPath, 'private-password.txt'))) {
-        privatePassword = readFileSync(path.join(secretsPath, 'private-password.txt'), 'utf8')
-    }
-    else privatePassword = undefined
     if (existsSync(path.join(secretsPath, 'public-port.txt'))) {
         publicPort = parseInt(readFileSync(path.join(secretsPath, 'public-port.txt'), 'utf8'))
     }
@@ -34,5 +29,5 @@ export function getSecrets(): Secrets {
         pagePort = parseInt(readFileSync(path.join(secretsPath, 'page-port.txt'), 'utf8'))
     }
     else pagePort = 3000
-    return { publicPassword, privatePassword, publicPort, privatePort, pagePort }
+    return { publicPassword, publicPort, privatePort, pagePort }
 }
