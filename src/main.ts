@@ -1,5 +1,4 @@
 import express from 'express'
-import { WebSocketServer } from 'ws'
 import { getSecrets } from './secrets'
 
 const secrets = getSecrets()
