@@ -2,12 +2,24 @@ import express from 'express'
 import { Server } from './communication'
 import { getSecrets } from './secrets'
 import { WebSocketServer } from 'ws'
+import { readFileSync } from 'fs'
 
 const secrets = getSecrets()
 
 const privateServer = new WebSocketServer({ port: secrets.privatePort })
 privateServer.once('listening', () => console.log(`Browser source socket is listening on ws://localhost:${secrets.privatePort}`))
-privateServer.on('message', message => console.log(`Got message from browser source socket: ${message.data}`))
+privateServer.on('connection', socket => {
+    socket.on('message', data => {
+        switch (data.toString()) {
+            case 'components':
+                let components = JSON.parse(readFileSync(__dirname + '/../components.json', 'utf8'))
+                socket.send(JSON.stringify(components))
+                break
+            default: console.log(`Got message from browser source socket: ${data}`)
+        }
+    })
+
+})
 
 const browserSource = express()
 browserSource.use(express.static(__dirname + '/../page'))

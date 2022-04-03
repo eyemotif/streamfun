@@ -1,0 +1,4 @@
+# Ignore the large files in this directory
+*
+*/
+!.gitignore
