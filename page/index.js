@@ -1,8 +1,19 @@
 const port = 8000
 let socket
 
-function interpretMessage(data) {
-    console.log(`Got message: ${data}`)
+function interpretMessage(message) {
+    const [task, ...args] = message.data.split(' ')
+    const rawArgs = args.join(' ')
+
+    switch (task) {
+        case 'audio':
+            if (args.length === 1) {
+                const playElement = document.getElementById(`audio-${args[0]}`)
+                playElement.play()
+            }
+            break
+        default: break
+    }
 }
 
 function removeFileExtension(filepath) {
@@ -12,6 +23,8 @@ function removeFileExtension(filepath) {
 }
 
 function setResources(message) {
+    console.log('...got components')
+
     const components = JSON.parse(message.data)
     let audioComponentDiv = document.getElementById('audio-components')
     for (const audioComponent of components['audio']) {
@@ -22,12 +35,12 @@ function setResources(message) {
         audioTag.appendChild(audioSource)
         audioComponentDiv.appendChild(audioTag)
     }
-    socket.removeEventListener('message', this)
+    socket.removeEventListener('message', setResources)
     socket.addEventListener('message', interpretMessage)
 }
 
 async function loadResources() {
-    console.log('asking for components...')
+    console.log('Asking for components...')
     socket.send('components')
     socket.addEventListener('message', setResources)
 }
@@ -39,6 +52,8 @@ async function loadSockets() {
         console.log(`Connected to Streamfun server!`)
         loadResources()
     })
+
+    socket.addEventListener('message', message => console.log(`Got "${message.data}"`))
 }
 
 window.onload = () => {
