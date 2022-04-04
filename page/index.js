@@ -9,7 +9,20 @@ function interpretMessage(message) {
         case 'audio':
             if (args.length === 1) {
                 const playElement = document.getElementById(`audio-${args[0]}`)
-                playElement.play()
+                if (playElement !== undefined) {
+                    console.log(`Playing audio "${args[0]}"`)
+                    playElement.play()
+                }
+            }
+            break
+        case 'audiovolume':
+            if (args.length === 2) {
+                const playElement = document.getElementById(`audio-${args[0]}`)
+                const volume = parseFloat(args[1])
+                if (playElement !== undefined && !isNaN(volume)) {
+                    console.log(`Setting audio ${args[0]} to ${args[1]}`)
+                    playElement.volume = parseFloat(args[1])
+                }
             }
             break
         default: break
@@ -22,19 +35,25 @@ function removeFileExtension(filepath) {
     return split.join('.')
 }
 
+function createAudioTag(file) {
+    let audioTag = document.createElement('audio')
+    audioTag.id = `audio-${removeFileExtension(file)}`
+    let audioSource = document.createElement('source')
+    audioSource.src = 'audio/' + file
+    audioTag.appendChild(audioSource)
+    return audioTag
+}
+
 function setResources(message) {
     console.log('...got components')
 
     const components = JSON.parse(message.data)
+
     let audioComponentDiv = document.getElementById('audio-components')
     for (const audioComponent of components['audio']) {
-        let audioTag = document.createElement('audio')
-        audioTag.id = `audio-${removeFileExtension(audioComponent)}`
-        let audioSource = document.createElement('source')
-        audioSource.src = 'audio/' + audioComponent
-        audioTag.appendChild(audioSource)
-        audioComponentDiv.appendChild(audioTag)
+        audioComponentDiv.appendChild(createAudioTag(audioComponent))
     }
+
     socket.removeEventListener('message', setResources)
     socket.addEventListener('message', interpretMessage)
 }
@@ -53,7 +72,7 @@ async function loadSockets() {
         loadResources()
     })
 
-    socket.addEventListener('message', message => console.log(`Got "${message.data}"`))
+    // socket.addEventListener('message', message => console.log(`Got "${message.data}"`))
 }
 
 window.onload = () => {

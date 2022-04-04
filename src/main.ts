@@ -3,6 +3,7 @@ import { Server } from './communication'
 import { getSecrets } from './secrets'
 import { WebSocketServer } from 'ws'
 import { readFileSync } from 'fs'
+import { publicServerHandler } from './public-server'
 
 const secrets = getSecrets()
 
@@ -20,6 +21,9 @@ privateServer.on('connection', socket => {
     })
 
 })
+
+const publicServer = new Server('public server', secrets.publicPort, secrets.publicPassword)
+publicServer.setInterpreter(publicServerHandler(privateServer))
 
 const browserSource = express()
 browserSource.use(express.static(__dirname + '/../page'))
