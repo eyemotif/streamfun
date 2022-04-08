@@ -21,7 +21,7 @@ export class ServerClient {
 
     public error(message: string) {
         this.socket.send(`ERROR: ${message}`)
-        if (++this.Errors === 3) this.socket.close(1, 'Dropped')
+        if (++this.Errors === 3) this.socket.close(1002, 'Dropped')
     }
 
     public authorize(): boolean {

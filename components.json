@@ -1,6 +1,11 @@
 {
     "audio": [
         "warpstar.mp3",
-        "vineboom.mp3"
+        "vineboom.mp3",
+        "thankyou.mp3",
+        "pwup.wav",
+        "treasure.wav",
+        "cheer.wav",
+        "bonk.mp3"
     ]
 }

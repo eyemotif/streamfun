@@ -65,7 +65,8 @@ async function loadResources() {
 }
 
 async function loadSockets() {
-    socket = new WebSocket(`ws://localhost:${port}`)
+    const location = window.location
+    socket = new WebSocket(`ws://${location.hostname}:${port}`)
 
     socket.addEventListener('open', () => {
         console.log(`Connected to Streamfun server!`)
