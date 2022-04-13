@@ -33,7 +33,6 @@ export function publicServerHandler(privateServer: WebSocketServer) {
             const message = data.toString()
             if (message === 'components') {
                 let components = JSON.parse(readFileSync(__dirname + '/../components.json', 'utf8'))
-
                 socket.send(JSON.stringify(components))
             }
             else if (message.startsWith('end:')) {
@@ -95,6 +94,11 @@ export function publicServerHandler(privateServer: WebSocketServer) {
             case 'volume':
                 if (args.length === 2) broadcast(privateServer, `audiovolume ${args[0]} ${args[1]}`)
                 else client.error('Invalid number of arguments for task "volume".')
+                break
+
+            case 'components':
+                let components = JSON.parse(readFileSync(__dirname + '/../components.json', 'utf8'))
+                client.send(JSON.stringify(components))
                 break
             default: client.error(`Invalid task.`)
         }
