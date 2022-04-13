@@ -76,13 +76,23 @@ export function publicServerHandler(privateServer: WebSocketServer) {
                 }
                 else client.error('Incorrect password.')
                 break
-            // default actions
+            // default media actions
             case 'audio':
                 if (args.length >= 1) {
-                    queues[task].push(args.map(str => str.split(':')))
-                    if (queues[task][queues[task].length - 1].length > MAX_QUEUE_LEN) {
-                        queues[task][queues[task].length - 1].splice(MAX_QUEUE_LEN)
-                    }
+                    const components = JSON.parse(readFileSync(__dirname + '/../components.json', 'utf8'))[task]
+
+                    const newQueue = args
+                        .map(str => str.split(':'))
+                        .map(multi => multi.reduce<string[]>((acc, i) => {
+                            const copy = acc
+                            if (!acc.includes(i) && components.includes(i)) copy.push(i)
+                            return copy
+                        }, []))
+                        .filter(multi => multi.length > 0)
+
+                    if (newQueue.length > MAX_QUEUE_LEN)
+                        newQueue.splice(MAX_QUEUE_LEN)
+                    queues[task].push(newQueue)
 
                     if (queues[task].length === 1) {
                         for (const component of queues[task][0][0])
