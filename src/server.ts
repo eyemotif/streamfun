@@ -13,7 +13,7 @@ function removeFileExtension(filepath: string) {
 }
 
 export function publicServerHandler(privateServer: WebSocketServer) {
-    const MAX_QUEUE_LEN = 20
+    const MAX_QUEUE_LEN = 10
     // [user][arg][multi]
     const queues: Record<string, string[][][]> = {
         audio: []
@@ -32,7 +32,7 @@ export function publicServerHandler(privateServer: WebSocketServer) {
         socket.on('message', data => {
             const message = data.toString()
             if (message === 'components') {
-                let components = JSON.parse(readFileSync(__dirname + '/../components.json', 'utf8'))
+                const components = JSON.parse(readFileSync(__dirname + '/../components.json', 'utf8'))
                 socket.send(JSON.stringify(components))
             }
             else if (message.startsWith('end:')) {
@@ -79,7 +79,9 @@ export function publicServerHandler(privateServer: WebSocketServer) {
             // default media actions
             case 'audio':
                 if (args.length >= 1) {
-                    const components = JSON.parse(readFileSync(__dirname + '/../components.json', 'utf8'))[task]
+                    const components =
+                        JSON.parse(readFileSync(__dirname + '/../components.json', 'utf8'))[task]
+                            .map((component: string) => removeFileExtension(component))
 
                     const newQueue = args
                         .map(str => str.split(':'))
@@ -92,7 +94,8 @@ export function publicServerHandler(privateServer: WebSocketServer) {
 
                     if (newQueue.length > MAX_QUEUE_LEN)
                         newQueue.splice(MAX_QUEUE_LEN)
-                    queues[task].push(newQueue)
+                    if (newQueue.length > 0)
+                        queues[task].push(newQueue)
 
                     if (queues[task].length === 1) {
                         for (const component of queues[task][0][0])
@@ -107,8 +110,12 @@ export function publicServerHandler(privateServer: WebSocketServer) {
                 break
 
             case 'components':
-                let components = JSON.parse(readFileSync(__dirname + '/../components.json', 'utf8'))
-                client.send(JSON.stringify(components))
+                let componentNames: Record<string, string[]> = {}
+                const components = JSON.parse(readFileSync(__dirname + '/../components.json', 'utf8'))
+                for (const componentType in components)
+                    componentNames[componentType] = components[componentType]
+                        .map((component: string) => removeFileExtension(component))
+                client.send(JSON.stringify(componentNames))
                 break
             default: client.error(`Invalid task.`)
         }
