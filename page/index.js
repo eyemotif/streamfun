@@ -36,11 +36,16 @@ function removeFileExtension(filepath) {
 }
 
 function createAudioTag(file) {
+    const componentName = removeFileExtension(file)
+
     let audioTag = document.createElement('audio')
-    audioTag.id = `audio-${removeFileExtension(file)}`
+    audioTag.id = `audio-${componentName}`
     let audioSource = document.createElement('source')
     audioSource.src = 'audio/' + file
     audioTag.appendChild(audioSource)
+
+    audioTag.onended = () => socket.send(`end:audio:${componentName}`)
+
     return audioTag
 }
 
