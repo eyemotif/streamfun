@@ -14,19 +14,19 @@ export function getSecrets(): Secrets {
     const secretsPath = path.join(__dirname, '..', 'secret')
     let publicPassword, publicPort, privatePort, pagePort
     if (existsSync(path.join(secretsPath, 'public-password.txt'))) {
-        publicPassword = readFileSync(path.join(secretsPath, 'public-password.txt'), 'utf8')
+        publicPassword = readFileSync(path.join(secretsPath, 'public-password.txt'), 'utf8').trim()
     }
     else publicPassword = undefined
     if (existsSync(path.join(secretsPath, 'public-port.txt'))) {
-        publicPort = parseInt(readFileSync(path.join(secretsPath, 'public-port.txt'), 'utf8'))
+        publicPort = parseInt(readFileSync(path.join(secretsPath, 'public-port.txt'), 'utf8').trim())
     }
     else publicPort = 8080
     if (existsSync(path.join(secretsPath, 'private-port.txt'))) {
-        privatePort = parseInt(readFileSync(path.join(secretsPath, 'private-port.txt'), 'utf8'))
+        privatePort = parseInt(readFileSync(path.join(secretsPath, 'private-port.txt'), 'utf8').trim())
     }
     else privatePort = 8000
     if (existsSync(path.join(secretsPath, 'page-port.txt'))) {
-        pagePort = parseInt(readFileSync(path.join(secretsPath, 'page-port.txt'), 'utf8'))
+        pagePort = parseInt(readFileSync(path.join(secretsPath, 'page-port.txt'), 'utf8').trim())
     }
     else pagePort = 3000
     return { publicPassword, publicPort, privatePort, pagePort }

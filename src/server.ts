@@ -1,6 +1,7 @@
 import { readFileSync } from 'fs'
 import { WebSocketServer } from 'ws'
 import { ServerClient } from './communication'
+import { getComponents } from './components'
 
 function broadcast(server: WebSocketServer, message: string) {
     server.clients.forEach(socket => socket.send(message))
@@ -14,7 +15,7 @@ function removeFileExtension(filepath: string) {
 
 export function publicServerHandler(privateServer: WebSocketServer) {
     const MAX_QUEUE_LEN = 10
-    // [user][arg][multi]
+    // [request][word][multi]
     const queues: Record<string, string[][][]> = {
         audio: []
     }
@@ -24,7 +25,7 @@ export function publicServerHandler(privateServer: WebSocketServer) {
         - The default task for a component is the name of the component type.
         - Any other tasks are formatted as <component-type><action>.
         
-        Any communication to the private server is formatted as:
+        Any communication from the app to the private server is formatted as:
         <event>:<component-type>:<component-name>.
     */
 
@@ -32,8 +33,7 @@ export function publicServerHandler(privateServer: WebSocketServer) {
         socket.on('message', data => {
             const message = data.toString()
             if (message === 'components') {
-                const components = JSON.parse(readFileSync(__dirname + '/../components.json', 'utf8'))
-                socket.send(JSON.stringify(components))
+                socket.send(JSON.stringify(getComponents()))
             }
             else if (message.startsWith('end:')) {
                 const [_, componentType, component] = message.split(':')
@@ -41,18 +41,22 @@ export function publicServerHandler(privateServer: WebSocketServer) {
                 const current = queues[componentType][0][0]
                 const removePos = current.indexOf(component)
 
-                if (removePos >= 0) {
-                    current.splice(removePos, 1)
-                    if (current.length === 0) {
-                        queues[componentType][0].shift()
-                        if (queues[componentType][0].length > 0)
+                if (removePos < 0) throw `Unknown ${componentType} component "${component}"`
+
+                current.splice(removePos, 1)
+                if (current.length === 0) {
+                    queues[componentType][0].shift()
+                    if (queues[componentType][0].length > 0)
+                        for (const component of queues[componentType][0][0])
+                            broadcast(privateServer, `${componentType} ${component}`)
+                    else {
+                        queues[componentType].shift()
+                        if (queues[componentType].length > 0)
                             for (const component of queues[componentType][0][0])
                                 broadcast(privateServer, `${componentType} ${component}`)
-                        else queues[componentType].shift()
                     }
-                    else queues[componentType][0][0] = current
                 }
-                else throw `Unknown ${componentType} component "${component}"`
+                else queues[componentType][0][0] = current
             }
             else console.log(`Got message from browser source socket: ${message}`)
         })
@@ -76,11 +80,12 @@ export function publicServerHandler(privateServer: WebSocketServer) {
                 }
                 else client.error('Incorrect password.')
                 break
-            // default media actions
+
+            // default media tasks
             case 'audio':
                 if (args.length >= 1) {
                     const components =
-                        JSON.parse(readFileSync(__dirname + '/../components.json', 'utf8'))[task]
+                        getComponents()[task]
                             .map((component: string) => removeFileExtension(component))
 
                     const newQueue = args
@@ -104,20 +109,29 @@ export function publicServerHandler(privateServer: WebSocketServer) {
                 }
                 else client.error(`Invalid number of arguments for task "${task}".`)
                 break
+
+            // other media tasks
             case 'volume':
                 if (args.length === 2) broadcast(privateServer, `audiovolume ${args[0]} ${args[1]}`)
-                else client.error('Invalid number of arguments for task "volume".')
+                else client.error(`Invalid number of arguments for task "${task}".`)
                 break
 
+            // internal tasks
+            case 'flush':
+                if (args.length === 1) queues[args[0]] = []
+                else client.error(`Invalid number of arguments for task "${task}".`)
+                break
             case 'components':
                 let componentNames: Record<string, string[]> = {}
-                const components = JSON.parse(readFileSync(__dirname + '/../components.json', 'utf8'))
+                const components = getComponents()
                 for (const componentType in components)
                     componentNames[componentType] = components[componentType]
                         .map((component: string) => removeFileExtension(component))
                 client.send(JSON.stringify(componentNames))
                 break
-            default: client.error(`Invalid task.`)
+            default:
+                client.error(`Invalid task.`)
+                break
         }
     }
 }

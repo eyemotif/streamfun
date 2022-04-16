@@ -11,11 +11,7 @@ export class ServerClient {
         this.socket = socket
         this.auth = authorized
 
-        this.socket.on('message', data => {
-            if (this.auth)
-                this.server.interpreter(this, data.toString())
-            else this.error('You are not authorized!')
-        })
+        this.socket.on('message', data => this.server.interpreter(this, data.toString()))
         this.socket.on('close', () => this.server.removeClient(this))
     }
 

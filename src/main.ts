@@ -15,4 +15,4 @@ const browserSource = express()
 browserSource.use(express.static(__dirname + '/../page'))
 
 browserSource.get('/', (_, res) => res.send('index.html'))
-browserSource.listen(secrets.pagePort, () => console.log(`Browser source hosted at: localhost:${secrets.pagePort}`))
+browserSource.listen(secrets.pagePort, () => console.log(`Browser source hosted at: http://localhost:${secrets.pagePort}`))

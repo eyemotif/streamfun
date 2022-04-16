@@ -77,6 +77,7 @@ async function loadSockets() {
         console.log(`Connected to Streamfun server!`)
         loadResources()
     })
+    socket.addEventListener('close', () => window.location.reload())
 
     // socket.addEventListener('message', message => console.log(`Got "${message.data}"`))
 }
